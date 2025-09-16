@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>States of Matter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>States of Matter</h1>
+        <div id="simulation">
+            <div id="atoms"></div>
+            <div id="thermometer">0 K</div>
+        </div>
+        <div class="controls">
+            <button onclick="changeState('solid')">Solid</button>
+            <button onclick="changeState('liquid')">Liquid</button>
+            <button onclick="changeState('gas')">Gas</button>
+            <input type="range" id="temperature" min="0" max="500" value="0" oninput="updateTemperature()">
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
