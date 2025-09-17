@@ -4,30 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>States of Matter Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: #f4f7fa;
+            color: #333;
         }
         .container {
+            max-width: 600px;
+            width: 100%;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            font-size: 2em;
+            font-weight: 500;
+            margin-bottom: 30px;
             text-align: center;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            color: #1a73e8;
         }
         #simulation {
-            border: 2px solid #000;
-            width: 400px;
+            border: 1px solid #ddd;
+            width: 100%;
             height: 400px;
             position: relative;
-            background-color: #e0e0e0;
-            margin: 0 auto;
+            background-color: #ffffff;
+            margin: 0 auto 20px;
+            border-radius: 8px;
+            overflow: hidden;
         }
         #canvas {
             width: 100%;
@@ -37,21 +49,81 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            background: #1a73e8;
+            padding: 6px 12px;
+            border-radius: 20px;
         }
         .controls {
-            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
         }
-        select, input, button {
-            margin: 10px;
-            padding: 8px;
-            font-size: 16px;
+        label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #555;
+        }
+        select, input[type="range"], button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        select:focus, input[type="range"]:focus, button:focus {
+            border-color: #1a73e8;
+            outline: none;
+        }
+        input[type="range"] {
+            width: 200px;
+            accent-color: #1a73e8;
+        }
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+        }
+        button:hover {
+            background: #0d65d8;
         }
         #info {
-            margin-top: 20px;
-            max-width: 400px;
             text-align: left;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        #info h2 {
+            font-size: 1.2em;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        #info p {
+            margin: 5px 0;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 10px;
+            }
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            input[type="range"] {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -63,16 +135,17 @@
             <div id="thermometer">0 K</div>
         </div>
         <div class="controls">
-            <label for="substance">Substance:</label>
-            <select id="substance" onchange="updateSimulation()">
-                <option value="neon">Neon</option>
-                <option value="argon">Argon</option>
-                <option value="oxygen">Oxygen</option>
-                <option value="water">Water</option>
-            </select>
-            <br>
-            <label for="temperature">Temperature (K): </label>
-            <input type="range" id="temperature" min="0" max="500" value="100" oninput="updateTemperature()">
+            <label for="substance">Substance:
+                <select id="substance" onchange="updateSimulation()">
+                    <option value="neon">Neon</option>
+                    <option value="argon">Argon</option>
+                    <option value="oxygen">Oxygen</option>
+                    <option value="water">Water</option>
+                </select>
+            </label>
+            <label for="temperature">Temperature (K):
+                <input type="range" id="temperature" min="0" max="500" value="100" oninput="updateTemperature()">
+            </label>
             <button onclick="heatUp()">Heat</button>
             <button onclick="coolDown()">Cool</button>
         </div>
@@ -81,7 +154,7 @@
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = 400;
+        canvas.width = canvas.parentElement.clientWidth;
         canvas.height = 400;
 
         const substances = {
@@ -139,7 +212,7 @@
                 <p>In ${state}, particles ${state === 'solid' ? 'vibrate in place' : state === 'liquid' ? 'move slowly and flow' : 'move rapidly and fill the container'}.</p>
                 <p>Changing temperature affects kinetic energy, leading to phase transitions.</p>
             `;
-            initParticles(); // Reset positions for new substance
+            initParticles();
         }
 
         function updateTemperature() {
@@ -164,37 +237,32 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const subst = substances[currentSubstance];
             const state = getState(temperature, subst);
-            const speedFactor = Math.sqrt(temperature / 300) * 2; // Arbitrary scaling
+            const speedFactor = Math.sqrt(temperature / 300) * 2;
 
             particles.forEach(p => {
                 if (state === 'solid') {
-                    // Vibrate around base position
                     p.x = p.baseX + (Math.random() - 0.5) * 2;
                     p.y = p.baseY + (Math.random() - 0.5) * 2;
                 } else if (state === 'liquid') {
-                    // Slow movement, attract to bottom
                     p.vx += (Math.random() - 0.5) * 0.5;
-                    p.vy += (Math.random() - 0.5) * 0.5 + 0.1; // Gravity
-                    p.vx *= 0.95; // Friction
+                    p.vy += (Math.random() - 0.5) * 0.5 + 0.1;
+                    p.vx *= 0.95;
                     p.vy *= 0.95;
                     p.x += p.vx * 0.5;
                     p.y += p.vy * 0.5;
-                } else { // Gas
+                } else {
                     p.x += p.vx * speedFactor;
                     p.y += p.vy * speedFactor;
                 }
 
-                // Bounce off walls
                 if (p.x - particleRadius < 0 || p.x + particleRadius > canvas.width) p.vx = -p.vx;
                 if (p.y - particleRadius < 0 || p.y + particleRadius > canvas.height) p.vy = -p.vy;
 
-                // For liquid, pile up at bottom
                 if (state === 'liquid' && p.y > canvas.height - particleRadius) {
                     p.y = canvas.height - particleRadius;
                     p.vy = -Math.abs(p.vy) * 0.5;
                 }
 
-                // Draw particle
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, particleRadius, 0, Math.PI * 2);
                 ctx.fillStyle = subst.color;
@@ -203,6 +271,11 @@
 
             requestAnimationFrame(animate);
         }
+
+        window.addEventListener('resize', () => {
+            canvas.width = canvas.parentElement.clientWidth;
+            initParticles();
+        });
 
         initParticles();
         updateSimulation();
