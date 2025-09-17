@@ -3,23 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>States of Matter</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>States of Matter Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #simulation {
+            border: 2px solid #000;
+            width: 400px;
+            height: 400px;
+            position: relative;
+            background-color: #e0e0e0;
+            margin: 0 auto;
+        }
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+        #thermometer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        select, input, button {
+            margin: 10px;
+            padding: 8px;
+            font-size: 16px;
+        }
+        #info {
+            margin-top: 20px;
+            max-width: 400px;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>States of Matter</h1>
+        <h1>States of Matter: Basics</h1>
         <div id="simulation">
-            <div id="atoms"></div>
+            <canvas id="canvas"></canvas>
             <div id="thermometer">0 K</div>
         </div>
         <div class="controls">
-            <button onclick="changeState('solid')">Solid</button>
-            <button onclick="changeState('liquid')">Liquid</button>
-            <button onclick="changeState('gas')">Gas</button>
-            <input type="range" id="temperature" min="0" max="500" value="0" oninput="updateTemperature()">
+            <label for="substance">Substance:</label>
+            <select id="substance" onchange="updateSimulation()">
+                <option value="neon">Neon</option>
+                <option value="argon">Argon</option>
+                <option value="oxygen">Oxygen</option>
+                <option value="water">Water</option>
+            </select>
+            <br>
+            <label for="temperature">Temperature (K): </label>
+            <input type="range" id="temperature" min="0" max="500" value="100" oninput="updateTemperature()">
+            <button onclick="heatUp()">Heat</button>
+            <button onclick="coolDown()">Cool</button>
         </div>
+        <div id="info"></div>
     </div>
-    <script src="script.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400;
+        canvas.height = 400;
+
+        const substances = {
+            neon: { melting: 25, boiling: 27, color: '#ff4500' },
+            argon: { melting: 84, boiling: 87, color: '#00ff00' },
+            oxygen: { melting: 54, boiling: 90, color: '#0000ff' },
+            water: { melting: 273, boiling: 373, color: '#00ffff' }
+        };
+
+        let currentSubstance = 'neon';
+        let temperature = 100;
+        let particles = [];
+        const numParticles = 50;
+        const particleRadius = 5;
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.baseX = x;
+                this.baseY = y;
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const gridSize = Math.ceil(Math.sqrt(numParticles));
+            const spacing = canvas.width / (gridSize + 1);
+            for (let i = 0; i < numParticles; i++) {
+                const row = Math.floor(i / gridSize);
+                const col = i % gridSize;
+                const x = (col + 1) * spacing;
+                const y = canvas.height - (row + 1) * spacing;
+                particles.push(new Particle(x, y));
+            }
+        }
+
+        function getState(temp, subst) {
+            if (temp < subst.melting) return 'solid';
+            if (temp < subst.boiling) return 'liquid';
+            return 'gas';
+        }
+
+        function updateSimulation() {
+            currentSubstance = document.getElementById('substance').value;
+            const subst = substances[currentSubstance];
+            const state = getState(temperature, subst);
+            document.getElementById('info').innerHTML = `
+                <h2>${currentSubstance.charAt(0).toUpperCase() + currentSubstance.slice(1)}</h2>
+                <p>Current State: ${state.charAt(0).toUpperCase() + state.slice(1)}</p>
+                <p>Melting Point: ${subst.melting} K</p>
+                <p>Boiling Point: ${subst.boiling} K</p>
+                <p>In ${state}, particles ${state === 'solid' ? 'vibrate in place' : state === 'liquid' ? 'move slowly and flow' : 'move rapidly and fill the container'}.</p>
+                <p>Changing temperature affects kinetic energy, leading to phase transitions.</p>
+            `;
+            initParticles(); // Reset positions for new substance
+        }
+
+        function updateTemperature() {
+            temperature = parseInt(document.getElementById('temperature').value);
+            document.getElementById('thermometer').textContent = `${temperature} K`;
+            updateSimulation();
+        }
+
+        function heatUp() {
+            temperature = Math.min(500, temperature + 10);
+            document.getElementById('temperature').value = temperature;
+            updateTemperature();
+        }
+
+        function coolDown() {
+            temperature = Math.max(0, temperature - 10);
+            document.getElementById('temperature').value = temperature;
+            updateTemperature();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const subst = substances[currentSubstance];
+            const state = getState(temperature, subst);
+            const speedFactor = Math.sqrt(temperature / 300) * 2; // Arbitrary scaling
+
+            particles.forEach(p => {
+                if (state === 'solid') {
+                    // Vibrate around base position
+                    p.x = p.baseX + (Math.random() - 0.5) * 2;
+                    p.y = p.baseY + (Math.random() - 0.5) * 2;
+                } else if (state === 'liquid') {
+                    // Slow movement, attract to bottom
+                    p.vx += (Math.random() - 0.5) * 0.5;
+                    p.vy += (Math.random() - 0.5) * 0.5 + 0.1; // Gravity
+                    p.vx *= 0.95; // Friction
+                    p.vy *= 0.95;
+                    p.x += p.vx * 0.5;
+                    p.y += p.vy * 0.5;
+                } else { // Gas
+                    p.x += p.vx * speedFactor;
+                    p.y += p.vy * speedFactor;
+                }
+
+                // Bounce off walls
+                if (p.x - particleRadius < 0 || p.x + particleRadius > canvas.width) p.vx = -p.vx;
+                if (p.y - particleRadius < 0 || p.y + particleRadius > canvas.height) p.vy = -p.vy;
+
+                // For liquid, pile up at bottom
+                if (state === 'liquid' && p.y > canvas.height - particleRadius) {
+                    p.y = canvas.height - particleRadius;
+                    p.vy = -Math.abs(p.vy) * 0.5;
+                }
+
+                // Draw particle
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, particleRadius, 0, Math.PI * 2);
+                ctx.fillStyle = subst.color;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        initParticles();
+        updateSimulation();
+        animate();
+    </script>
 </body>
 </html>
