@@ -17,7 +17,7 @@
             color: #333;
         }
         .container {
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             padding: 40px 20px;
             background: white;
@@ -34,7 +34,7 @@
         #simulation {
             border: 1px solid #ddd;
             width: 100%;
-            height: 400px;
+            height: 450px;
             position: relative;
             background-color: #ffffff;
             margin: 0 auto 20px;
@@ -53,6 +53,17 @@
             font-weight: 500;
             color: #fff;
             background: #1a73e8;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        #current-state {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            background: #34a853;
             padding: 6px 12px;
             border-radius: 20px;
         }
@@ -133,6 +144,7 @@
         <div id="simulation">
             <canvas id="canvas"></canvas>
             <div id="thermometer">0 K</div>
+            <div id="current-state">Solid</div>
         </div>
         <div class="controls">
             <label for="substance">Substance:
@@ -141,13 +153,17 @@
                     <option value="argon">Argon</option>
                     <option value="oxygen">Oxygen</option>
                     <option value="water">Water</option>
+                    <option value="mercury">Mercury</option>
+                    <option value="carbonDioxide">Carbon Dioxide</option>
                 </select>
             </label>
             <label for="temperature">Temperature (K):
-                <input type="range" id="temperature" min="0" max="500" value="100" oninput="updateTemperature()">
+                <input type="range" id="temperature" min="0" max="600" value="100" oninput="updateTemperature()">
             </label>
-            <button onclick="heatUp()">Heat</button>
-            <button onclick="coolDown()">Cool</button>
+            <button onclick="heatUp()">Heat ( +10 K )</button>
+            <button onclick="coolDown()">Cool ( -10 K )</button>
+            <button onclick="togglePause()">Pause/Play</button>
+            <button onclick="resetSimulation()">Reset</button>
         </div>
         <div id="info"></div>
     </div>
@@ -155,20 +171,23 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = 400;
+        canvas.height = 450;
 
         const substances = {
-            neon: { melting: 25, boiling: 27, color: '#ff4500' },
-            argon: { melting: 84, boiling: 87, color: '#00ff00' },
-            oxygen: { melting: 54, boiling: 90, color: '#0000ff' },
-            water: { melting: 273, boiling: 373, color: '#00ffff' }
+            neon: { melting: 24.6, boiling: 27.1, color: '#ff4500' },
+            argon: { melting: 83.8, boiling: 87.3, color: '#00ff00' },
+            oxygen: { melting: 54.4, boiling: 90.2, color: '#0000ff' },
+            water: { melting: 273.15, boiling: 373.15, color: '#00ffff' },
+            mercury: { melting: 234.32, boiling: 629.88, color: '#a9a9a9' },
+            carbonDioxide: { melting: 216.6, boiling: 194.7, color: '#ffffff' } // Sublimation point for CO2
         };
 
         let currentSubstance = 'neon';
         let temperature = 100;
         let particles = [];
-        const numParticles = 50;
-        const particleRadius = 5;
+        const numParticles = 100; // Increased for better visualization
+        const particleRadius = 4;
+        let isPaused = false;
 
         class Particle {
             constructor(x, y) {
@@ -189,7 +208,7 @@
                 const row = Math.floor(i / gridSize);
                 const col = i % gridSize;
                 const x = (col + 1) * spacing;
-                const y = canvas.height - (row + 1) * spacing;
+                const y = canvas.height - (row + 1) * spacing + (Math.random() - 0.5) * spacing * 0.1; // Slight randomness for realism
                 particles.push(new Particle(x, y));
             }
         }
@@ -204,13 +223,14 @@
             currentSubstance = document.getElementById('substance').value;
             const subst = substances[currentSubstance];
             const state = getState(temperature, subst);
+            document.getElementById('current-state').textContent = state.charAt(0).toUpperCase() + state.slice(1);
             document.getElementById('info').innerHTML = `
                 <h2>${currentSubstance.charAt(0).toUpperCase() + currentSubstance.slice(1)}</h2>
                 <p>Current State: ${state.charAt(0).toUpperCase() + state.slice(1)}</p>
-                <p>Melting Point: ${subst.melting} K</p>
-                <p>Boiling Point: ${subst.boiling} K</p>
-                <p>In ${state}, particles ${state === 'solid' ? 'vibrate in place' : state === 'liquid' ? 'move slowly and flow' : 'move rapidly and fill the container'}.</p>
-                <p>Changing temperature affects kinetic energy, leading to phase transitions.</p>
+                <p>Melting Point: ${subst.melting.toFixed(1)} K</p>
+                <p>Boiling Point: ${subst.boiling.toFixed(1)} K</p>
+                <p>In the ${state} state, particles ${state === 'solid' ? 'are tightly packed in a fixed lattice and vibrate with increasing amplitude as temperature rises.' : state === 'liquid' ? 'have enough energy to move past each other, flowing while maintaining volume, with cohesion from intermolecular forces.' : 'move freely at high speeds, colliding elastically and filling the container uniformly.'}.</p>
+                <p>Temperature changes increase or decrease kinetic energy, causing phase transitions like melting (solid to liquid) or vaporization (liquid to gas).</p>
             `;
             initParticles();
         }
@@ -222,7 +242,7 @@
         }
 
         function heatUp() {
-            temperature = Math.min(500, temperature + 10);
+            temperature = Math.min(600, temperature + 10);
             document.getElementById('temperature').value = temperature;
             updateTemperature();
         }
@@ -233,41 +253,101 @@
             updateTemperature();
         }
 
+        function togglePause() {
+            isPaused = !isPaused;
+            if (!isPaused) animate();
+        }
+
+        function resetSimulation() {
+            temperature = 100;
+            document.getElementById('temperature').value = temperature;
+            currentSubstance = 'neon';
+            document.getElementById('substance').value = 'neon';
+            isPaused = false;
+            updateSimulation();
+            animate();
+        }
+
+        function detectCollisions() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 2 * particleRadius) {
+                        // Simple elastic collision
+                        const tempVx = particles[i].vx;
+                        const tempVy = particles[i].vy;
+                        particles[i].vx = particles[j].vx;
+                        particles[i].vy = particles[j].vy;
+                        particles[j].vx = tempVx;
+                        particles[j].vy = tempVy;
+                    }
+                }
+            }
+        }
+
         function animate() {
+            if (isPaused) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const subst = substances[currentSubstance];
             const state = getState(temperature, subst);
-            const speedFactor = Math.sqrt(temperature / 300) * 2;
+            const speedFactor = Math.sqrt(temperature / 300) * 3; // Increased for more dynamic movement
+            const vibrationAmp = Math.min(5, temperature / subst.melting * 2); // Realistic vibration scaling
 
             particles.forEach(p => {
                 if (state === 'solid') {
-                    p.x = p.baseX + (Math.random() - 0.5) * 2;
-                    p.y = p.baseY + (Math.random() - 0.5) * 2;
+                    // Vibrate with amplitude based on temp
+                    p.x = p.baseX + (Math.random() - 0.5) * vibrationAmp;
+                    p.y = p.baseY + (Math.random() - 0.5) * vibrationAmp;
                 } else if (state === 'liquid') {
-                    p.vx += (Math.random() - 0.5) * 0.5;
-                    p.vy += (Math.random() - 0.5) * 0.5 + 0.1;
-                    p.vx *= 0.95;
-                    p.vy *= 0.95;
-                    p.x += p.vx * 0.5;
-                    p.y += p.vy * 0.5;
+                    // Improved flow with attraction/repulsion for cohesion
+                    let ax = 0, ay = 0;
+                    particles.forEach(other => {
+                        if (other !== p) {
+                            const dx = p.x - other.x;
+                            const dy = p.y - other.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist > 0 && dist < 20) ax += dx / dist * 0.01; // Repulsion
+                            else if (dist > 20 && dist < 40) ax -= dx / dist * 0.005; // Attraction
+                        }
+                    });
+                    p.vx += ax + (Math.random() - 0.5) * 0.2;
+                    p.vy += ay + (Math.random() - 0.5) * 0.2 + 0.05; // Light gravity
+                    p.vx *= 0.98; // Friction for viscosity
+                    p.vy *= 0.98;
+                    p.x += p.vx;
+                    p.y += p.vy;
                 } else {
+                    // Gas: Faster movement with particle collisions
+                    p.vx += (Math.random() - 0.5) * 0.1;
+                    p.vy += (Math.random() - 0.5) * 0.1;
                     p.x += p.vx * speedFactor;
                     p.y += p.vy * speedFactor;
                 }
 
-                if (p.x - particleRadius < 0 || p.x + particleRadius > canvas.width) p.vx = -p.vx;
-                if (p.y - particleRadius < 0 || p.y + particleRadius > canvas.height) p.vy = -p.vy;
+                // Wall collisions
+                if (p.x - particleRadius < 0) { p.x = particleRadius; p.vx = -p.vx; }
+                if (p.x + particleRadius > canvas.width) { p.x = canvas.width - particleRadius; p.vx = -p.vx; }
+                if (p.y - particleRadius < 0) { p.y = particleRadius; p.vy = -p.vy; }
+                if (p.y + particleRadius > canvas.height) { p.y = canvas.height - particleRadius; p.vy = -p.vy; }
 
-                if (state === 'liquid' && p.y > canvas.height - particleRadius) {
-                    p.y = canvas.height - particleRadius;
-                    p.vy = -Math.abs(p.vy) * 0.5;
+                if (state === 'liquid' && p.y > canvas.height - particleRadius * 2) {
+                    p.y = canvas.height - particleRadius * 2;
+                    p.vy *= -0.3; // Softer bounce
                 }
 
+                // Draw particle with gradient for 3D effect
+                const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, particleRadius);
+                gradient.addColorStop(0, subst.color);
+                gradient.addColorStop(1, '#00000033'); // Subtle shadow
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, particleRadius, 0, Math.PI * 2);
-                ctx.fillStyle = subst.color;
+                ctx.fillStyle = gradient;
                 ctx.fill();
             });
+
+            if (state !== 'solid') detectCollisions(); // Collisions in liquid/gas for realism
 
             requestAnimationFrame(animate);
         }
