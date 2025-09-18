@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>States of Matter Simulation - Upgraded Edition</title>
+    <title>States of Matter By Devin</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -262,7 +262,7 @@
         let frame = 0;
 
         class Particle {
-            constructor(x, y, vx = (Math.random() - 0.5) * 2, vy = (Math.random() - 0.5) * 2) {
+            constructor(x, y, vx = (Math.random() - 0.5) * 0.5, vy = (Math.random() - 0.5) * 0.5) {
                 this.x = x;
                 this.y = y;
                 this.vx = vx;
@@ -299,7 +299,7 @@
         function ljForce(dist, epsilon = 1, sigma = 10) {
             if (dist === 0) return 0;
             const sr6 = Math.pow(sigma / dist, 6);
-            const forceMag = 24 * epsilon / dist * (2 * sr6 * sr6 - sr6);
+            const forceMag = 24 * epsilon / dist * (2 * sr6 * sr6 - sr6) * 0.01; // Reduced force magnitude
             return forceMag;
         }
 
@@ -369,10 +369,10 @@
                 const dvy = p1.vy - p2.vy;
                 const dot = dvx * nx + dvy * ny;
                 if (dot < 0) {
-                    p1.vx -= dot * nx;
-                    p1.vy -= dot * ny;
-                    p2.vx += dot * nx;
-                    p2.vy += dot * ny;
+                    p1.vx -= dot * nx * 0.5; // Reduced collision impact
+                    p1.vy -= dot * ny * 0.5;
+                    p2.vx += dot * nx * 0.5;
+                    p2.vy += dot * ny * 0.5;
                 }
                 const overlap = 2 * particleRadius - dist;
                 p1.x += nx * overlap / 2;
@@ -388,12 +388,12 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const subst = substances[currentSubstance];
             const state = getState(temperature, subst);
-            const speedFactor = Math.sqrt(temperature / 273) * 2;
-            const vibrationAmp = Math.min(8, (temperature / subst.melting) * 3);
+            const speedFactor = Math.sqrt(temperature / 273) * 0.5; // Reduced speed factor
+            const vibrationAmp = Math.min(4, (temperature / subst.melting) * 1.5); // Reduced vibration
 
             particles.forEach(p => { p.forceX = 0; p.forceY = 0; });
 
-            const epsilon = state === 'solid' ? 2 : state === 'liquid' ? 1.5 : 0.5;
+            const epsilon = state === 'solid' ? 1.5 : state === 'liquid' ? 1.0 : 0.3; // Adjusted force strength
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
                     const dx = particles[i].x - particles[j].x;
@@ -416,22 +416,22 @@
             let sumKE = 0;
 
             particles.forEach(p => {
-                p.vx += p.forceX * 0.01 + (Math.random() - 0.5) * 0.05;
-                p.vy += p.forceY * 0.01 + (Math.random() - 0.5) * 0.05;
+                p.vx += p.forceX * 0.005 + (Math.random() - 0.5) * 0.02; // Reduced force and noise
+                p.vy += p.forceY * 0.005 + (Math.random() - 0.5) * 0.02;
 
                 if (state === 'solid') {
                     const dx = p.x - p.baseX;
                     const dy = p.y - p.baseY;
-                    p.forceX -= dx * 0.1;
-                    p.forceY -= dy * 0.1;
-                    p.vx += p.forceX * 0.01;
-                    p.vy += p.forceY * 0.01;
+                    p.forceX -= dx * 0.05; // Reduced spring constant
+                    p.forceY -= dy * 0.05;
+                    p.vx += p.forceX * 0.005;
+                    p.vy += p.forceY * 0.005;
                     p.x += (Math.random() - 0.5) * vibrationAmp;
                     p.y += (Math.random() - 0.5) * vibrationAmp;
                 } else if (state === 'liquid') {
-                    p.vy += 0.1; // gravity
-                    p.vx *= 0.95;
-                    p.vy *= 0.95;
+                    p.vy += 0.05; // Reduced gravity
+                    p.vx *= 0.98; // Increased damping
+                    p.vy *= 0.98;
                     p.x += p.vx;
                     p.y += p.vy;
                 } else {
@@ -440,10 +440,10 @@
                 }
 
                 // Wall collisions
-                if (p.x - particleRadius < 0) { p.x = particleRadius; p.vx = -p.vx; wallCollisions++; }
-                if (p.x + particleRadius > canvas.width) { p.x = canvas.width - particleRadius; p.vx = -p.vx; wallCollisions++; }
-                if (p.y - particleRadius < 0) { p.y = particleRadius; p.vy = -p.vy; wallCollisions++; }
-                if (p.y + particleRadius > canvas.height) { p.y = canvas.height - particleRadius; p.vy = -p.vy * (state === 'liquid' ? 0.3 : 1); wallCollisions++; }
+                if (p.x - particleRadius < 0) { p.x = particleRadius; p.vx = -p.vx * 0.8; wallCollisions++; } // Reduced bounce
+                if (p.x + particleRadius > canvas.width) { p.x = canvas.width - particleRadius; p.vx = -p.vx * 0.8; wallCollisions++; }
+                if (p.y - particleRadius < 0) { p.y = particleRadius; p.vy = -p.vy * 0.8; wallCollisions++; }
+                if (p.y + particleRadius > canvas.height) { p.y = canvas.height - particleRadius; p.vy = -p.vy * (state === 'liquid' ? 0.2 : 0.8); wallCollisions++; }
 
                 sumKE += 0.5 * (p.vx * p.vx + p.vy * p.vy);
             });
@@ -453,7 +453,7 @@
 
             // Pressure heuristic
             if (state === 'gas') {
-                pressure = wallCollisions * speedFactor * 0.5;
+                pressure = wallCollisions * speedFactor * 0.2; // Reduced pressure scaling
             } else {
                 pressure = 0;
             }
