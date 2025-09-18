@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>States of Matter By Devin</title>
+    <title>States Of Matter Particle’s By Devin</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -21,9 +21,9 @@
             max-width: 800px;
             width: 100%;
             padding: 40px 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background: linear-gradient(135deg, #ffffff, #f9f9f9);
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
         h1 {
             font-size: 2em;
@@ -39,8 +39,9 @@
             position: relative;
             background-color: #ffffff;
             margin: 0 auto 20px;
-            border-radius: 8px;
+            border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         #canvas {
             width: 100%;
@@ -53,10 +54,11 @@
             font-size: 16px;
             font-weight: 500;
             color: #fff;
-            background: #1a73e8;
+            background: linear-gradient(135deg, #1a73e8, #0d65d8);
             padding: 6px 12px;
             border-radius: 20px;
             z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         #current-state {
             position: absolute;
@@ -65,10 +67,11 @@
             font-size: 16px;
             font-weight: 500;
             color: #fff;
-            background: #34a853;
+            background: linear-gradient(135deg, #34a853, #2b8a44);
             padding: 6px 12px;
             border-radius: 20px;
             z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         #pressure {
             position: absolute;
@@ -77,10 +80,11 @@
             font-size: 14px;
             font-weight: 500;
             color: #fff;
-            background: #ff9800;
+            background: linear-gradient(135deg, #ff9800, #e68a00);
             padding: 4px 8px;
             border-radius: 10px;
             z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .controls {
             display: flex;
@@ -96,13 +100,18 @@
             color: #555;
         }
         select, input[type="range"], button {
-            padding: 8px 12px;
+            padding: 8px 16px;
             border: 1px solid #ddd;
-            border-radius: 6px;
+            border-radius: 12px;
             background: white;
             font-size: 14px;
             cursor: pointer;
-            transition: border-color 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        select:hover, input[type="range"]:hover, button:hover {
+            border-color: #1a73e8;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         select:focus, input[type="range"]:focus, button:focus {
             border-color: #1a73e8;
@@ -113,12 +122,12 @@
             accent-color: #1a73e8;
         }
         button {
-            background: #1a73e8;
+            background: linear-gradient(135deg, #1a73e8, #0d65d8);
             color: white;
             border: none;
         }
         button:hover {
-            background: #0d65d8;
+            background: linear-gradient(135deg, #0d65d8, #1a73e8);
         }
         #info {
             text-align: left;
@@ -126,9 +135,10 @@
             line-height: 1.6;
             color: #555;
             background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px;
+            border-radius: 16px;
             border: 1px solid #eee;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         #info h2 {
             font-size: 1.2em;
@@ -143,12 +153,46 @@
             font-family: monospace;
             background: #e8f4f8;
             padding: 5px;
-            border-radius: 4px;
+            border-radius: 8px;
             color: #0066cc;
         }
         #chart-container {
             height: 300px;
             margin-top: 20px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: #555;
+        }
+        .tab-button.active {
+            background: linear-gradient(135deg, #1a73e8, #0d65d8);
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .tab-button:hover {
+            background: #e0e0e0;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
         @media (max-width: 600px) {
             .container {
@@ -166,47 +210,59 @@
 </head>
 <body>
     <div class="container">
-        <h1>States of Matter Simulation - Upgraded Edition</h1>
-        <p style="text-align: center; color: #666;">Original by Devin for Mr. Wilson. Enhanced with more substances, accurate physics, proper collisions, velocity distribution chart, and more.</p>
-        <div id="simulation">
-            <canvas id="canvas"></canvas>
-            <div id="thermometer">100 K</div>
-            <div id="current-state">Solid</div>
-            <div id="pressure">Pressure: 0 kPa</div>
+        <h1>States Of Matter Particle’s By Devin</h1>
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="openTab('simulation-tab')">Simulation</button>
+            <button class="tab-button" onclick="openTab('info-tab')">Info</button>
+            <button class="tab-button" onclick="openTab('chart-tab')">Chart</button>
         </div>
-        <div class="controls">
-            <label for="substance">Substance:
-                <select id="substance" onchange="updateSimulation()">
-                    <option value="helium">Helium</option>
-                    <option value="hydrogen">Hydrogen</option>
-                    <option value="neon">Neon</option>
-                    <option value="nitrogen">Nitrogen</option>
-                    <option value="oxygen">Oxygen</option>
-                    <option value="argon">Argon</option>
-                    <option value="krypton">Krypton</option>
-                    <option value="carbonDioxide">Carbon Dioxide</option>
-                    <option value="water">Water</option>
-                    <option value="ethanol">Ethanol</option>
-                    <option value="mercury">Mercury</option>
-                    <option value="iron">Iron</option>
-                </select>
-            </label>
-            <label for="temperature">Temperature (K):
-                <input type="range" id="temperature" min="0" max="4000" value="100" oninput="updateTemperature()">
-            </label>
-            <button onclick="heatUp()">Heat (+10 K)</button>
-            <button onclick="coolDown()">Cool (-10 K)</button>
-            <button onclick="togglePause()">Pause/Play</button>
-            <button onclick="resetSimulation()">Reset</button>
+        <div id="simulation-tab" class="tab-content active">
+            <div id="simulation">
+                <canvas id="canvas"></canvas>
+                <div id="thermometer">100 K</div>
+                <div id="current-state">Solid</div>
+                <div id="pressure">Pressure: 0 kPa</div>
+            </div>
+            <div class="controls">
+                <label for="substance">Substance:
+                    <select id="substance" onchange="updateSimulation()">
+                        <option value="neon">Neon</option>
+                        <option value="argon">Argon</option>
+                        <option value="oxygen">Oxygen</option>
+                        <option value="water">Water</option>
+                        <option value="mercury">Mercury</option>
+                        <option value="carbonDioxide">Carbon Dioxide</option>
+                    </select>
+                </label>
+                <label for="temperature">Temperature (K):
+                    <input type="range" id="temperature" min="0" max="1000" value="100" oninput="updateTemperature()">
+                </label>
+                <button onclick="heatUp()">Heat (+10 K)</button>
+                <button onclick="coolDown()">Cool (-10 K)</button>
+                <button onclick="togglePause()">Pause/Play</button>
+                <button onclick="resetSimulation()">Reset</button>
+            </div>
         </div>
-        <div id="info">
-            <p>Average Kinetic Energy (simulated): <span id="avg-ke">0</span></p>
+        <div id="info-tab" class="tab-content">
+            <div id="info"></div>
         </div>
-        <div id="chart-container">
-            <canvas id="chart"></canvas>
+        <div id="chart-tab" class="tab-content">
+            <div id="chart-container">
+                <canvas id="chart"></canvas>
+            </div>
         </div>
     </div>
     <script>
+        function openTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = canvas.parentElement.clientWidth;
@@ -214,13 +270,16 @@
 
         const chartCtx = document.getElementById('chart').getContext('2d');
         const myChart = new Chart(chartCtx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: [],
                 datasets: [{
                     label: 'Velocity Distribution',
                     data: [],
-                    backgroundColor: '#1a73e8'
+                    backgroundColor: 'rgba(26, 115, 232, 0.2)',
+                    borderColor: '#1a73e8',
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
@@ -230,26 +289,20 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Velocity Histogram (Gas State Only)'
+                        text: 'Velocity Histogram (Gas State Only)',
+                        font: { size: 16 }
                     }
                 }
             }
         });
 
-        // Updated substances with accurate data
         const substances = {
-            helium: { melting: 0.95, boiling: 4.22, color: '#ff00ff', molarMass: 0.004 },
-            hydrogen: { melting: 13.99, boiling: 20.27, color: '#ffff00', molarMass: 0.002 },
-            neon: { melting: 24.56, boiling: 27.1, color: '#ff4500', molarMass: 0.020 },
-            nitrogen: { melting: 63.23, boiling: 77.36, color: '#9900ff', molarMass: 0.028 },
-            oxygen: { melting: 54.36, boiling: 90.19, color: '#0000ff', molarMass: 0.032 },
-            argon: { melting: 83.81, boiling: 87.3, color: '#00ff00', molarMass: 0.04 },
-            krypton: { melting: 115.78, boiling: 119.93, color: '#00ff99', molarMass: 0.084 },
-            carbonDioxide: { melting: 216.55, boiling: 194.68, color: '#ffffff', molarMass: 0.044 },
+            neon: { melting: 24.56, boiling: 27.104, color: '#ff4500', molarMass: 0.02018 },
+            argon: { melting: 83.81, boiling: 87.302, color: '#00ff00', molarMass: 0.03995 },
+            oxygen: { melting: 54.36, boiling: 90.188, color: '#0000ff', molarMass: 0.032 },
             water: { melting: 273.15, boiling: 373.15, color: '#00ffff', molarMass: 0.018 },
-            ethanol: { melting: 159, boiling: 351.4, color: '#ff9900', molarMass: 0.046 },
-            mercury: { melting: 234.32, boiling: 629.88, color: '#a9a9a9', molarMass: 0.201 },
-            iron: { melting: 1811, boiling: 3134, color: '#666666', molarMass: 0.056 }
+            mercury: { melting: 234.32, boiling: 629.88, color: '#a9a9a9', molarMass: 0.2006 },
+            carbonDioxide: { melting: 216.55, boiling: 194.68, color: '#ffffff', molarMass: 0.044 }
         };
 
         let currentSubstance = 'neon';
@@ -299,7 +352,7 @@
         function ljForce(dist, epsilon = 1, sigma = 10) {
             if (dist === 0) return 0;
             const sr6 = Math.pow(sigma / dist, 6);
-            const forceMag = 24 * epsilon / dist * (2 * sr6 * sr6 - sr6) * 0.01; // Reduced force magnitude
+            const forceMag = 24 * epsilon / dist * (2 * sr6 * sr6 - sr6) * 0.01;
             return forceMag;
         }
 
@@ -332,7 +385,7 @@
         }
 
         function heatUp() {
-            temperature = Math.min(4000, temperature + 10);
+            temperature = Math.min(1000, temperature + 10);
             document.getElementById('temperature').value = temperature;
             updateTemperature();
         }
@@ -369,7 +422,7 @@
                 const dvy = p1.vy - p2.vy;
                 const dot = dvx * nx + dvy * ny;
                 if (dot < 0) {
-                    p1.vx -= dot * nx * 0.5; // Reduced collision impact
+                    p1.vx -= dot * nx * 0.5;
                     p1.vy -= dot * ny * 0.5;
                     p2.vx += dot * nx * 0.5;
                     p2.vy += dot * ny * 0.5;
@@ -388,12 +441,12 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const subst = substances[currentSubstance];
             const state = getState(temperature, subst);
-            const speedFactor = Math.sqrt(temperature / 273) * 0.5; // Reduced speed factor
-            const vibrationAmp = Math.min(4, (temperature / subst.melting) * 1.5); // Reduced vibration
+            const speedFactor = Math.sqrt(temperature / 273) * 0.5;
+            const vibrationAmp = Math.min(4, (temperature / subst.melting) * 1.5);
 
             particles.forEach(p => { p.forceX = 0; p.forceY = 0; });
 
-            const epsilon = state === 'solid' ? 1.5 : state === 'liquid' ? 1.0 : 0.3; // Adjusted force strength
+            const epsilon = state === 'solid' ? 1.5 : state === 'liquid' ? 1.0 : 0.3;
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
                     const dx = particles[i].x - particles[j].x;
@@ -416,21 +469,21 @@
             let sumKE = 0;
 
             particles.forEach(p => {
-                p.vx += p.forceX * 0.005 + (Math.random() - 0.5) * 0.02; // Reduced force and noise
+                p.vx += p.forceX * 0.005 + (Math.random() - 0.5) * 0.02;
                 p.vy += p.forceY * 0.005 + (Math.random() - 0.5) * 0.02;
 
                 if (state === 'solid') {
                     const dx = p.x - p.baseX;
                     const dy = p.y - p.baseY;
-                    p.forceX -= dx * 0.05; // Reduced spring constant
+                    p.forceX -= dx * 0.05;
                     p.forceY -= dy * 0.05;
                     p.vx += p.forceX * 0.005;
                     p.vy += p.forceY * 0.005;
                     p.x += (Math.random() - 0.5) * vibrationAmp;
                     p.y += (Math.random() - 0.5) * vibrationAmp;
                 } else if (state === 'liquid') {
-                    p.vy += 0.05; // Reduced gravity
-                    p.vx *= 0.98; // Increased damping
+                    p.vy += 0.05;
+                    p.vx *= 0.98;
                     p.vy *= 0.98;
                     p.x += p.vx;
                     p.y += p.vy;
@@ -439,8 +492,7 @@
                     p.y += p.vy * speedFactor;
                 }
 
-                // Wall collisions
-                if (p.x - particleRadius < 0) { p.x = particleRadius; p.vx = -p.vx * 0.8; wallCollisions++; } // Reduced bounce
+                if (p.x - particleRadius < 0) { p.x = particleRadius; p.vx = -p.vx * 0.8; wallCollisions++; }
                 if (p.x + particleRadius > canvas.width) { p.x = canvas.width - particleRadius; p.vx = -p.vx * 0.8; wallCollisions++; }
                 if (p.y - particleRadius < 0) { p.y = particleRadius; p.vy = -p.vy * 0.8; wallCollisions++; }
                 if (p.y + particleRadius > canvas.height) { p.y = canvas.height - particleRadius; p.vy = -p.vy * (state === 'liquid' ? 0.2 : 0.8); wallCollisions++; }
@@ -449,17 +501,16 @@
             });
 
             const avgKE = sumKE / numParticles;
-            if (document.getElementById('avg-ke')) document.getElementById('avg-ke').textContent = avgKE.toFixed(2);
+            const avgKeElement = document.getElementById('avg-ke');
+            if (avgKeElement) avgKeElement.textContent = avgKE.toFixed(2);
 
-            // Pressure heuristic
             if (state === 'gas') {
-                pressure = wallCollisions * speedFactor * 0.2; // Reduced pressure scaling
+                pressure = wallCollisions * speedFactor * 0.2;
             } else {
                 pressure = 0;
             }
             document.getElementById('pressure').textContent = `Pressure: ${pressure.toFixed(1)} (arb. units)`;
 
-            // Draw particles
             particles.forEach(p => {
                 const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, particleRadius);
                 gradient.addColorStop(0, subst.color);
@@ -470,7 +521,6 @@
                 ctx.fill();
             });
 
-            // Update chart for gas state
             if (state === 'gas' && frame % 10 === 0) {
                 const speeds = particles.map(p => Math.sqrt(p.vx * p.vx + p.vy * p.vy) * speedFactor);
                 const maxSpeed = Math.max(...speeds, 1);
